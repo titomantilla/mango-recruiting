@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>WebApp de Reclutamiento</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    .hidden { display: none; }
+    .card { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+    .status-open { background: #e6ffe6; }
+    .status-hold { background: #fff9cc; }
+    .status-closed { background: #ffe6e6; }
+  </style>
+</head>
+<body>
+  <h2>WebApp de Reclutamiento</h2>
+
+  <div id="loginDiv">
+    <input type="email" id="email" placeholder="Email"><br>
+    <input type="password" id="password" placeholder="Contraseña"><br>
+    <button onclick="login()">Iniciar sesión</button>
+  </div>
+
+  <div id="logoutDiv" class="hidden">
+    <p>Bienvenido/a: <span id="userEmail"></span></p>
+    <button onclick="logout()">Cerrar sesión</button>
+  </div>
+
+  <div id="mainApp" class="hidden">
+    <h3>Agregar Posición</h3>
+    <form id="jobForm">
+      <input placeholder="Puesto" id="puesto" required><br>
+      <input placeholder="Empresa" id="empresa" required><br>
+      <input placeholder="Contrato" id="contrato"><br>
+      <input placeholder="Ubicación" id="ubicacion"><br>
+      <input placeholder="Modalidad" id="modalidad"><br>
+      <input placeholder="Salario" id="salario"><br>
+      <textarea placeholder="JD" id="jd"></textarea><br>
+      <textarea placeholder="Beneficios" id="beneficios"></textarea><br>
+      <textarea placeholder="Proceso del cliente" id="proceso"></textarea><br>
+      <input placeholder="Link de aplicación" id="link"><br>
+      <textarea placeholder="Notas adicionales" id="notas"></textarea><br>
+      <select id="estado">
+        <option value="abierta">Abierta</option>
+        <option value="on hold">On Hold</option>
+        <option value="cerrada">Cerrada</option>
+      </select><br><br>
+      <button type="submit">Guardar</button>
+    </form>
+
+    <h3>Posiciones</h3>
+    <div id="posiciones"></div>
+  </div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBGDdiBrP6JZGuCy4Uma6Aw7o7KqYy4dKk",
+    authDomain: "mango-recruiting.firebaseapp.com",
+    projectId: "mango-recruiting"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  const loginDiv = document.getElementById('loginDiv');
+  const logoutDiv = document.getElementById('logoutDiv');
+  const mainApp = document.getElementById('mainApp');
+  const userEmail = document.getElementById('userEmail');
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      loginDiv.classList.add('hidden');
+      logoutDiv.classList.remove('hidden');
+      mainApp.classList.remove('hidden');
+      userEmail.innerText = user.email;
+      cargarPosiciones();
+    } else {
+      loginDiv.classList.remove('hidden');
+      logoutDiv.classList.add('hidden');
+      mainApp.classList.add('hidden');
+    }
+  });
+
+  function login() {
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('password').value;
+    auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+  }
+
+  function logout() {
+    auth.signOut();
+  }
+
+  document.getElementById('jobForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+      puesto: puesto.value,
+      empresa: empresa.value,
+      contrato: contrato.value,
+      ubicacion: ubicacion.value,
+      modalidad: modalidad.value,
+      salario: salario.value,
+      jd: jd.value,
+      beneficios: beneficios.value,
+      proceso: proceso.value,
+      link: link.value,
+      notas: notas.value,
+      estado: estado.value,
+      trabajando: [],
+      comentarios: []
+    };
+    await db.collection('posiciones').add(data);
+    alert("Posición guardada");
+    document.getElementById('jobForm').reset();
+    cargarPosiciones();
+  });
+
+  async function cargarPosiciones() {
+    const contenedor = document.getElementById('posiciones');
+    contenedor.innerHTML = '';
+    const snap = await db.collection('posiciones').get();
+    const user = auth.currentUser;
+    snap.forEach(doc => {
+      const d = doc.data();
+      const card = document.createElement('div');
+      card.className = `card status-${d.estado.replace(' ', '')}`;
+      card.innerHTML = `<b>${d.puesto}</b> - ${d.empresa}<br>Estado: ${d.estado}<br>
+        <button onclick="marcarTrabajo('${doc.id}')">Estoy trabajando en esto</button>
+        <p><b>Comentarios:</b></p>
+        <ul>${(d.comentarios||[]).map(c => `<li>${c.email}: ${c.texto}</li>`).join('')}</ul>
+        <input placeholder="Nuevo comentario" id="comentario-${doc.id}">
+        <button onclick="comentar('${doc.id}')">Agregar comentario</button>`;
+      contenedor.appendChild(card);
+    });
+  }
+
+  async function marcarTrabajo(id) {
+    const user = auth.currentUser;
+    const ref = db.collection('posiciones').doc(id);
+    const doc = await ref.get();
+    const d = doc.data();
+    if (!d.trabajando.includes(user.email)) {
+      await ref.update({ trabajando: [...d.trabajando, user.email] });
+      cargarPosiciones();
+    }
+  }
+
+  async function comentar(id) {
+    const user = auth.currentUser;
+    const input = document.getElementById(`comentario-${id}`);
+    const texto = input.value;
+    if (texto.trim() === '') return;
+    const ref = db.collection('posiciones').doc(id);
+    await ref.update({
+      comentarios: firebase.firestore.FieldValue.arrayUnion({ email: user.email, texto })
+    });
+    input.value = '';
+    cargarPosiciones();
+  }
+</script>
+</body>
+</html>
