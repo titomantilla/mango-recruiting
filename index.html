@@ -95,7 +95,14 @@
   }
 
   function logout() {
-    auth.signOut();
+    auth.signOut().then(() => {
+      // Limpiar cualquier estado o UI adicional si es necesario
+      loginDiv.classList.remove('hidden');
+      logoutDiv.classList.add('hidden');
+      mainApp.classList.add('hidden');
+    }).catch((error) => {
+      alert("Error al cerrar sesión: " + error.message);
+    });
   }
 
   document.getElementById('jobForm').addEventListener('submit', async (e) => {
