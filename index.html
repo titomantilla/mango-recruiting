@@ -130,18 +130,18 @@
       const d = doc.data();
       const card = document.createElement('div');
       card.className = `card status-${d.estado.replace(' ', '')}`;
+      let comentariosHTML = '';
+      (d.comentarios || []).forEach((c, index) => {
+        const puedeBorrar = c.email === user.email;
+        comentariosHTML += `<li class="comentario">
+          ${c.email}: ${c.texto}
+          ${puedeBorrar ? '<button onclick="borrarComentario(\'' + doc.id + '\',' + index + ')">❌</button>' : ''}
+        </li>`;
+      });
       card.innerHTML = `<b>${d.puesto}</b> - ${d.empresa}<br>Estado: ${d.estado}<br>
         <button onclick="marcarTrabajo('${doc.id}')">Estoy trabajando en esto</button>
         <p><b>Comentarios:</b></p>
-        <ul id="comentarios-${doc.id}">
-          ${(d.comentarios||[]).map((c, index) => {
-            const puedeBorrar = c.email === user.email;
-            return `<li class="comentario">
-              ${c.email}: ${c.texto}
-              ${puedeBorrar ? `<button onclick=\"borrarComentario('${doc.id}', ${index})\">❌</button>` : ''}
-            </li>`;
-          }).join('')}
-        </ul>
+        <ul id="comentarios-${doc.id}">${comentariosHTML}</ul>
         <input placeholder="Nuevo comentario" id="comentario-${doc.id}">
         <button onclick="comentar('${doc.id}')">Agregar comentario</button>`;
       contenedor.appendChild(card);
