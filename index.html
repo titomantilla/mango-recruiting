@@ -2,16 +2,19 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Mango Recruiting - Positions</title>
+  <title>Mango Recruiting</title>
+  <!-- Google Font Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <link href="estilos.css" rel="stylesheet">
-  
 </head>
 <body class="app-body">
   <div class="app-container">
-    <h2 class="app-title">Mango Recruiting</h2>
+    <h2 class="app-title">
+      <img src="mango-icon.png" alt="" class="icon-mango"> Mango Recruiting
+    </h2>
 
     <div id="loginDiv" class="card">
       <input type="email" id="email" placeholder="Email" class="input">
@@ -26,7 +29,7 @@
 
     <div id="mainApp" class="hidden" style="display: none;">
       <div class="form-section card mb-6">
-        <button id="toggleForm" class="btn mb-2">Agregar nueva posición</button>
+        <button id="toggleForm" class="btn mb-2">Agregar nueva posición</button>
         <form id="jobForm" class="form-grid hidden" style="display: none;">
           <input placeholder="Puesto" id="puesto" required class="input">
           <input placeholder="Empresa" id="empresa" required class="input">
@@ -50,6 +53,7 @@
 
       <div class="positions-section positions-box">
         <div class="control-buttons mb-4">
+          <h3>Posiciones</h3>
           <button id="expandAll" class="btn mr-2">Expandir todo</button>
           <button id="collapseAll" class="btn">Colapsar todo</button>
         </div>
@@ -64,7 +68,7 @@
   </div>
 
 <script>
-  // Firebase config
+  // Configuración de Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyBGDdiBrP6JZGuCy4Uma6Aw7o7KqYy4dKk",
     authDomain: "mango-recruiting.firebaseapp.com",
@@ -78,13 +82,13 @@
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  // UI Elements
+  // Elementos UI
   const loginDiv = document.getElementById('loginDiv');
   const logoutDiv = document.getElementById('logoutDiv');
   const mainApp = document.getElementById('mainApp');
   const userEmail = document.getElementById('userEmail');
 
-  // Auth listener
+  // Listener de Auth
   auth.onAuthStateChanged(user => {
     if (user) {
       loginDiv.classList.add('hidden'); loginDiv.style.display = 'none';
@@ -99,35 +103,39 @@
     }
   });
 
-  // Login
   function login() {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
     auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
   }
 
-  // Logout
   function logout() {
     auth.signOut();
   }
 
-  // Create/Save Position
   document.getElementById('jobForm').addEventListener('submit', async e => {
     e.preventDefault();
     const data = {
-      puesto: puesto.value, empresa: empresa.value,
-      contrato: contrato.value, ubicacion: ubicacion.value,
-      modalidad: modalidad.value, salario: salario.value,
-      jd: jd.value, beneficios: beneficios.value,
-      proceso: proceso.value, link: link.value, notas: notas.value,
-      estado: estado.value, trabajando: [], comentarios: []
+      puesto: puesto.value,
+      empresa: empresa.value,
+      contrato: contrato.value,
+      ubicacion: ubicacion.value,
+      modalidad: modalidad.value,
+      salario: salario.value,
+      jd: jd.value,
+      beneficios: beneficios.value,
+      proceso: proceso.value,
+      link: link.value,
+      notas: notas.value,
+      estado: estado.value,
+      trabajando: [],
+      comentarios: []
     };
     await db.collection('posiciones').add(data);
     document.getElementById('jobForm').reset();
     cargarPosiciones();
   });
 
-  // Load Positions
   async function cargarPosiciones() {
     const abiertas = document.getElementById('posiciones-abiertas');
     const onhold = document.getElementById('posiciones-onhold');
@@ -173,49 +181,16 @@
     });
   }
 
-  // Marking Trabajo
-  async function marcarTrabajo(id) {
-    const user = auth.currentUser;
-    const ref = db.collection('posiciones').doc(id);
-    const doc = await ref.get(); const d = doc.data();
-    const ya = d.trabajando.includes(user.email);
-    await ref.update({trabajando: ya? d.trabajando.filter(e=>e!==user.email): [...d.trabajando,user.email]});
-    cargarPosiciones();
-  }
-
-  // Comments
-  async function comentar(id) {
-    const user = auth.currentUser; const input = document.getElementById(`comentario-${id}`); const text=input.value;
-    if(!text.trim()) return; const ref=db.collection('posiciones').doc(id);
-    const d=(await ref.get()).data(); await ref.update({comentarios: [...(d.comentarios||[]),{email:user.email,texto:text}]});
-    input.value=''; cargarPosiciones();
-  }
-
-  // Delete comment
-  async function borrarComentario(id,index) {
-    const ref=db.collection('posiciones').doc(id);
-    const d=(await ref.get()).data(); const user=auth.currentUser;
-    if(d.comentarios[index].email!==user.email) return;
-    d.comentarios.splice(index,1); await ref.update({comentarios:d.comentarios});
-    cargarPosiciones();
-  }
-
-  // Section toggles
+  // Toggle Form and Sections
   document.getElementById('toggleForm').addEventListener('click',()=>{
     const f=document.getElementById('jobForm'); f.style.display=f.style.display==='block'?'none':'block';
   });
   function toggleSection(id){const sec=document.getElementById(id);sec.style.display=sec.style.display==='none'?'block':'none';}
-
-  // Expand/Collapse All
-  document.getElementById('expandAll').addEventListener('click', () => {
-    ['posiciones-abiertas','posiciones-onhold','posiciones-cerradas'].forEach(id => {
-      document.getElementById(id).style.display = 'block';
-    });
+  document.getElementById('expandAll').addEventListener('click',()=>{
+    ['posiciones-abiertas','posiciones-onhold','posiciones-cerradas'].forEach(i=>document.getElementById(i).style.display='block');
   });
-  document.getElementById('collapseAll').addEventListener('click', () => {
-    ['posiciones-abiertas','posiciones-onhold','posiciones-cerradas'].forEach(id => {
-      document.getElementById(id).style.display = 'none';
-    });
+  document.getElementById('collapseAll').addEventListener('click',()=>{
+    ['posiciones-abiertas','posiciones-onhold','posiciones-cerradas'].forEach(i=>document.getElementById(i).style.display='none');
   });
 </script>
 </body>
