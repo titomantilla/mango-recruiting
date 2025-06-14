@@ -6,68 +6,65 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <style>
-    body { font-family: sans-serif; margin: 20px; }
-    .hidden { display: none; }
-    .card { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
-    .status-open { background: #e6ffe6; }
-    .status-hold { background: #fff9cc; }
-    .status-closed { background: #ffe6e6; }
-    .comentario { margin-bottom: 5px; }
-    .comentario button { margin-left: 10px; }
-  </style>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="estilos.css" rel="stylesheet">
 </head>
-<body>
-  <h2>WebApp de Reclutamiento</h2>
+<body class="app-body">
+  <div class="app-container">
+    <h2 class="app-title">WebApp de Reclutamiento</h2>
 
-  <div id="loginDiv">
-    <input type="email" id="email" placeholder="Email"><br>
-    <input type="password" id="password" placeholder="Contraseña"><br>
-    <button onclick="login()">Iniciar sesión</button>
-  </div>
+    <div id="loginDiv" class="card">
+      <input type="email" id="email" placeholder="Email" class="input">
+      <input type="password" id="password" placeholder="Contraseña" class="input">
+      <button onclick="login()" class="btn w-full">Iniciar sesión</button>
+    </div>
 
-  <div id="logoutDiv" class="hidden">
-    <p>Bienvenido/a: <span id="userEmail"></span></p>
-    <button onclick="logout()">Cerrar sesión</button>
-  </div>
+    <div id="logoutDiv" class="hidden card">
+      <p>Bienvenido/a: <span id="userEmail" class="font-semibold"></span></p>
+      <button onclick="logout()" class="btn-danger mt-2">Cerrar sesión</button>
+    </div>
 
-  <div id="mainApp" class="hidden">
-    <h3>Agregar Posición</h3>
-    <form id="jobForm">
-      <input placeholder="Puesto" id="puesto" required><br>
-      <input placeholder="Empresa" id="empresa" required><br>
-      <input placeholder="Contrato" id="contrato"><br>
-      <input placeholder="Ubicación" id="ubicacion"><br>
-      <input placeholder="Modalidad" id="modalidad"><br>
-      <input placeholder="Salario" id="salario"><br>
-      <textarea placeholder="JD" id="jd"></textarea><br>
-      <textarea placeholder="Beneficios" id="beneficios"></textarea><br>
-      <textarea placeholder="Proceso del cliente" id="proceso"></textarea><br>
-      <input placeholder="Link de aplicación" id="link"><br>
-      <textarea placeholder="Notas adicionales" id="notas"></textarea><br>
-      <select id="estado">
-        <option value="abierta">Abierta</option>
-        <option value="on hold">On Hold</option>
-        <option value="cerrada">Cerrada</option>
-      </select><br><br>
-      <button type="submit">Guardar</button>
-    </form>
+    <div id="mainApp" class="hidden">
+      <div class="card mb-6">
+        <h3 class="section-title">Agregar Posición</h3>
+        <form id="jobForm" class="form-grid">
+          <input placeholder="Puesto" id="puesto" required class="input">
+          <input placeholder="Empresa" id="empresa" required class="input">
+          <input placeholder="Contrato" id="contrato" class="input">
+          <input placeholder="Ubicación" id="ubicacion" class="input">
+          <input placeholder="Modalidad" id="modalidad" class="input">
+          <input placeholder="Salario" id="salario" class="input">
+          <textarea placeholder="JD" id="jd" class="input"></textarea>
+          <textarea placeholder="Beneficios" id="beneficios" class="input"></textarea>
+          <textarea placeholder="Proceso del cliente" id="proceso" class="input"></textarea>
+          <input placeholder="Link de aplicación" id="link" class="input">
+          <textarea placeholder="Notas adicionales" id="notas" class="input"></textarea>
+          <select id="estado" class="input">
+            <option value="abierta">Abierta</option>
+            <option value="on hold">On Hold</option>
+            <option value="cerrada">Cerrada</option>
+          </select>
+          <button type="submit" class="btn-success">Guardar</button>
+        </form>
+      </div>
 
-    <h3>Posiciones</h3>
-    <div id="posiciones"></div>
+      <div>
+        <h3 class="section-title">Posiciones</h3>
+        <div id="posiciones" class="space-y-4"></div>
+      </div>
+    </div>
   </div>
 
 <script>
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBGDdiBrP6JZGuCy4Uma6Aw7o7KqYy4dKk",
-  authDomain: "mango-recruiting.firebaseapp.com",
-  projectId: "mango-recruiting",
-  storageBucket: "mango-recruiting.firebasestorage.app",
-  messagingSenderId: "206446658105",
-  appId: "1:206446658105:web:2d3cb58ab735faf66cc3e8",
-  measurementId: "G-P9NS81JWKB"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyBGDdiBrP6JZGuCy4Uma6Aw7o7KqYy4dKk",
+    authDomain: "mango-recruiting.firebaseapp.com",
+    projectId: "mango-recruiting",
+    storageBucket: "mango-recruiting.firebasestorage.app",
+    messagingSenderId: "206446658105",
+    appId: "1:206446658105:web:2d3cb58ab735faf66cc3e8",
+    measurementId: "G-P9NS81JWKB"
+  };
 
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
@@ -134,21 +131,27 @@ const firebaseConfig = {
     snap.forEach(doc => {
       const d = doc.data();
       const card = document.createElement('div');
-      card.className = `card status-${d.estado.replace(' ', '')}`;
+      card.className = `card border-l-4 ${d.estado === 'abierta' ? 'border-green-500' : d.estado === 'on hold' ? 'border-yellow-500' : 'border-red-500'}`;
       let comentariosHTML = '';
       (d.comentarios || []).forEach((c, index) => {
         const puedeBorrar = c.email === user.email;
-        comentariosHTML += `<li class="comentario">
-          ${c.email}: ${c.texto}
-          ${puedeBorrar ? '<button onclick="borrarComentario(\'' + doc.id + '\',' + index + ')">❌</button>' : ''}
+        comentariosHTML += `<li class="comentario-item">
+          <span>${c.email}: ${c.texto}</span>
+          ${puedeBorrar ? `<button onclick="borrarComentario('${doc.id}', ${index})" class="btn-icon">❌</button>` : ''}
         </li>`;
       });
-      card.innerHTML = `<b>${d.puesto}</b> - ${d.empresa}<br>Estado: ${d.estado}<br>
-        <button onclick="marcarTrabajo('${doc.id}')">Estoy trabajando en esto</button>
-        <p><b>Comentarios:</b></p>
-        <ul id="comentarios-${doc.id}">${comentariosHTML}</ul>
-        <input placeholder="Nuevo comentario" id="comentario-${doc.id}">
-        <button onclick="comentar('${doc.id}')">Agregar comentario</button>`;
+      card.innerHTML = `
+        <h4 class="card-title">${d.puesto}</h4>
+        <p class="card-subtitle">${d.empresa} - ${d.estado}</p>
+        <button onclick="marcarTrabajo('${doc.id}')" class="btn-secondary">Estoy trabajando en esto</button>
+        <div class="comentarios">
+          <p class="font-semibold">Comentarios:</p>
+          <ul id="comentarios-${doc.id}" class="comentario-list">${comentariosHTML}</ul>
+          <div class="comentario-form">
+            <input placeholder="Nuevo comentario" id="comentario-${doc.id}" class="input flex-grow">
+            <button onclick="comentar('${doc.id}')" class="btn-success">Agregar</button>
+          </div>
+        </div>`;
       contenedor.appendChild(card);
     });
   }
