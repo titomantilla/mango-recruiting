@@ -1,0 +1,31 @@
+.comentario-item {
+  @apply flex justify-between items-center text-sm;
+}
+
+.btn-icon {
+  @apply text-red-500 text-sm ml-2;
+}
+
+.btn-secondary {
+  @apply bg-blue-500 text-white text-sm px-3 py-1 rounded mb-2;
+}
+
+.card-title {
+  @apply text-lg font-semibold;
+}
+
+.card-subtitle {
+  @apply text-sm text-gray-600 mb-2;
+}
+
+.comentarios {
+  @apply mt-2;
+}
+
+.comentario-list {
+  @apply space-y-1;
+}
+
+.comentario-form {
+  @apply flex mt-2 gap-2;
+}
