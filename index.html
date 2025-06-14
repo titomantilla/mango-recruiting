@@ -6,7 +6,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-    <link href="estilos.css" rel="stylesheet">
+  <link href="estilos.css" rel="stylesheet">
+  
 </head>
 <body class="app-body">
   <div class="app-container">
@@ -18,15 +19,15 @@
       <button onclick="login()" class="btn w-full">Iniciar sesión</button>
     </div>
 
-    <div id="logoutDiv" class="hidden card">
+    <div id="logoutDiv" class="hidden card" style="display: none;">
       <p>Bienvenido/a: <span id="userEmail" class="font-semibold"></span></p>
       <button onclick="logout()" class="btn-danger mt-2">Cerrar sesión</button>
     </div>
 
-    <div id="mainApp" class="hidden">
-      <div class="card mb-6">
-        <h3 class="section-title">Agregar Posición</h3>
-        <form id="jobForm" class="form-grid">
+    <div id="mainApp" class="hidden" style="display: none;">
+      <div class="form-section card mb-6">
+        <button id="toggleForm" class="btn mb-2">Agregar nueva posición</button>
+        <form id="jobForm" class="form-grid hidden" style="display: none;">
           <input placeholder="Puesto" id="puesto" required class="input">
           <input placeholder="Empresa" id="empresa" required class="input">
           <input placeholder="Contrato" id="contrato" class="input">
@@ -43,18 +44,27 @@
             <option value="on hold">On Hold</option>
             <option value="cerrada">Cerrada</option>
           </select>
-          <button type="submit" class="btn-success">Guardar</button>
+          <button type="submit" class="btn-success">Enviar</button>
         </form>
       </div>
 
-      <div>
-        <h3 class="section-title">Posiciones</h3>
-        <div id="posiciones" class="space-y-4"></div>
+      <div class="positions-section positions-box">
+        <div class="control-buttons mb-4">
+          <button id="expandAll" class="btn mr-2">Expandir todo</button>
+          <button id="collapseAll" class="btn">Colapsar todo</button>
+        </div>
+        <h3 class="section-title" onclick="toggleSection('posiciones-abiertas')">Posiciones Abiertas</h3>
+        <div id="posiciones-abiertas" class="space-y-4"></div>
+        <h3 class="section-title" onclick="toggleSection('posiciones-onhold')">Posiciones On Hold</h3>
+        <div id="posiciones-onhold" class="space-y-4"></div>
+        <h3 class="section-title" onclick="toggleSection('posiciones-cerradas')">Posiciones Cerradas</h3>
+        <div id="posiciones-cerradas" class="space-y-4"></div>
       </div>
     </div>
   </div>
 
 <script>
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBGDdiBrP6JZGuCy4Uma6Aw7o7KqYy4dKk",
     authDomain: "mango-recruiting.firebaseapp.com",
@@ -64,138 +74,149 @@
     appId: "1:206446658105:web:2d3cb58ab735faf66cc3e8",
     measurementId: "G-P9NS81JWKB"
   };
-
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
 
+  // UI Elements
   const loginDiv = document.getElementById('loginDiv');
   const logoutDiv = document.getElementById('logoutDiv');
   const mainApp = document.getElementById('mainApp');
   const userEmail = document.getElementById('userEmail');
 
+  // Auth listener
   auth.onAuthStateChanged(user => {
     if (user) {
-      loginDiv.classList.add('hidden');
-      logoutDiv.classList.remove('hidden');
-      mainApp.classList.remove('hidden');
+      loginDiv.classList.add('hidden'); loginDiv.style.display = 'none';
+      logoutDiv.classList.remove('hidden'); logoutDiv.style.display = 'block';
+      mainApp.classList.remove('hidden'); mainApp.style.display = 'block';
       userEmail.innerText = user.email;
       cargarPosiciones();
     } else {
-      loginDiv.classList.remove('hidden');
-      logoutDiv.classList.add('hidden');
-      mainApp.classList.add('hidden');
+      loginDiv.classList.remove('hidden'); loginDiv.style.display = 'block';
+      logoutDiv.classList.add('hidden'); logoutDiv.style.display = 'none';
+      mainApp.style.display = 'none';
     }
   });
 
+  // Login
   function login() {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
     auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
   }
 
+  // Logout
   function logout() {
-    auth.signOut().catch((error) => {
-      alert("Error al cerrar sesión: " + error.message);
-    });
-  }).catch((error) => {
-      alert("Error al cerrar sesión: " + error.message);
-    });
+    auth.signOut();
   }
 
-  document.getElementById('jobForm').addEventListener('submit', async (e) => {
+  // Create/Save Position
+  document.getElementById('jobForm').addEventListener('submit', async e => {
     e.preventDefault();
     const data = {
-      puesto: puesto.value,
-      empresa: empresa.value,
-      contrato: contrato.value,
-      ubicacion: ubicacion.value,
-      modalidad: modalidad.value,
-      salario: salario.value,
-      jd: jd.value,
-      beneficios: beneficios.value,
-      proceso: proceso.value,
-      link: link.value,
-      notas: notas.value,
-      estado: estado.value,
-      trabajando: [],
-      comentarios: []
+      puesto: puesto.value, empresa: empresa.value,
+      contrato: contrato.value, ubicacion: ubicacion.value,
+      modalidad: modalidad.value, salario: salario.value,
+      jd: jd.value, beneficios: beneficios.value,
+      proceso: proceso.value, link: link.value, notas: notas.value,
+      estado: estado.value, trabajando: [], comentarios: []
     };
     await db.collection('posiciones').add(data);
-    alert("Posición guardada");
     document.getElementById('jobForm').reset();
     cargarPosiciones();
   });
 
+  // Load Positions
   async function cargarPosiciones() {
-    const contenedor = document.getElementById('posiciones');
-    contenedor.innerHTML = '';
+    const abiertas = document.getElementById('posiciones-abiertas');
+    const onhold = document.getElementById('posiciones-onhold');
+    const cerradas = document.getElementById('posiciones-cerradas');
+    abiertas.innerHTML = ''; onhold.innerHTML = ''; cerradas.innerHTML = '';
     const snap = await db.collection('posiciones').get();
     const user = auth.currentUser;
     snap.forEach(doc => {
       const d = doc.data();
       const card = document.createElement('div');
-      card.className = `card border-l-4 ${d.estado === 'abierta' ? 'border-green-500' : d.estado === 'on hold' ? 'border-yellow-500' : 'border-red-500'}`;
+      card.className = `card border-l-4 ${d.estado==='abierta'? 'border-green-500': d.estado==='on hold'? 'border-yellow-500':'border-red-500'}`;
       let comentariosHTML = '';
-      (d.comentarios || []).forEach((c, index) => {
-        const puedeBorrar = c.email === user.email;
-        comentariosHTML += `<li class="comentario-item">
-          <span>${c.email}: ${c.texto}</span>
-          ${puedeBorrar ? `<button onclick="borrarComentario('${doc.id}', ${index})" class="btn-icon">❌</button>` : ''}
-        </li>`;
+      (d.comentarios||[]).forEach((c,i)=>{
+        comentariosHTML+= `<li class="comentario-item"><span>${c.email}: ${c.texto}</span>${c.email===user.email? `<button onclick="borrarComentario('${doc.id}',${i})" class="btn-icon">❌</button>`:''}</li>`;
       });
       card.innerHTML = `
-        <h4 class="card-title">${d.puesto}</h4>
-        <p class="card-subtitle">${d.empresa} - ${d.estado}</p>
-        <button onclick="marcarTrabajo('${doc.id}')" class="btn-secondary">Estoy trabajando en esto</button>
-        <div class="comentarios">
-          <p class="font-semibold">Comentarios:</p>
-          <ul id="comentarios-${doc.id}" class="comentario-list">${comentariosHTML}</ul>
-          <div class="comentario-form">
-            <input placeholder="Nuevo comentario" id="comentario-${doc.id}" class="input flex-grow">
-            <button onclick="comentar('${doc.id}')" class="btn-success">Agregar</button>
+        <div class="position-title">${d.puesto} - ${d.empresa} - ${d.ubicacion}</div>
+        <div class="job-details">
+          <p><strong>Puesto:</strong> ${d.puesto}</p>
+          <p><strong>Empresa:</strong> ${d.empresa}</p>
+          <p><strong>Ubicación:</strong> ${d.ubicacion}</p>
+          <p><strong>Estado:</strong> <span class="status-badge status-${d.estado.replace(/ /g,'')}">${d.estado}</span></p>
+          <p><strong>Contrato:</strong> ${d.contrato}</p>
+          <p><strong>Modalidad:</strong> ${d.modalidad}</p>
+          <p><strong>Salario:</strong> ${d.salario}</p>
+          <p><strong>JD:</strong> ${d.jd}</p>
+          <p><strong>Beneficios:</strong> ${d.beneficios}</p>
+          <p><strong>Proceso:</strong> ${d.proceso}</p>
+          <p><strong>Link:</strong> <a href="${d.link}" target="_blank">${d.link}</a></p>
+          <p><strong>Notas:</strong> ${d.notas}</p>
+          <p><strong>Trabajando en esto:</strong> ${(d.trabajando||[]).join(', ')|| 'Nadie aún'}</p>
+          <button onclick="marcarTrabajo('${doc.id}')" class="btn-secondary">${(d.trabajando||[]).includes(user.email)? 'Dejar de trabajar':'Estoy trabajando'}</button>
+          <div class="comentarios">
+            <p class="font-semibold">Comentarios:</p>
+            <ul class="comentario-list">${comentariosHTML}</ul>
+            <div class="comentario-form">
+              <input placeholder="Nuevo comentario" id="comentario-${doc.id}" class="input flex-grow">
+              <button onclick="comentar('${doc.id}')" class="btn-success">Agregar</button>
+            </div>
           </div>
         </div>`;
-      contenedor.appendChild(card);
+      (d.estado==='abierta'?abiertas:d.estado==='on hold'?onhold:cerradas).appendChild(card);
     });
   }
 
+  // Marking Trabajo
   async function marcarTrabajo(id) {
     const user = auth.currentUser;
     const ref = db.collection('posiciones').doc(id);
-    const doc = await ref.get();
-    const d = doc.data();
-    if (!d.trabajando.includes(user.email)) {
-      await ref.update({ trabajando: [...d.trabajando, user.email] });
-      cargarPosiciones();
-    }
+    const doc = await ref.get(); const d = doc.data();
+    const ya = d.trabajando.includes(user.email);
+    await ref.update({trabajando: ya? d.trabajando.filter(e=>e!==user.email): [...d.trabajando,user.email]});
+    cargarPosiciones();
   }
 
+  // Comments
   async function comentar(id) {
-    const user = auth.currentUser;
-    const input = document.getElementById(`comentario-${id}`);
-    const texto = input.value;
-    if (texto.trim() === '') return;
-    const ref = db.collection('posiciones').doc(id);
-    const doc = await ref.get();
-    const d = doc.data();
-    const nuevosComentarios = [...(d.comentarios || []), { email: user.email, texto }];
-    await ref.update({ comentarios: nuevosComentarios });
-    input.value = '';
+    const user = auth.currentUser; const input = document.getElementById(`comentario-${id}`); const text=input.value;
+    if(!text.trim()) return; const ref=db.collection('posiciones').doc(id);
+    const d=(await ref.get()).data(); await ref.update({comentarios: [...(d.comentarios||[]),{email:user.email,texto:text}]});
+    input.value=''; cargarPosiciones();
+  }
+
+  // Delete comment
+  async function borrarComentario(id,index) {
+    const ref=db.collection('posiciones').doc(id);
+    const d=(await ref.get()).data(); const user=auth.currentUser;
+    if(d.comentarios[index].email!==user.email) return;
+    d.comentarios.splice(index,1); await ref.update({comentarios:d.comentarios});
     cargarPosiciones();
   }
 
-  async function borrarComentario(id, index) {
-    const ref = db.collection('posiciones').doc(id);
-    const doc = await ref.get();
-    const d = doc.data();
-    const user = auth.currentUser;
-    const comentarios = d.comentarios || [];
-    if (comentarios[index].email !== user.email) return;
-    comentarios.splice(index, 1);
-    await ref.update({ comentarios });
-    cargarPosiciones();
-  }
+  // Section toggles
+  document.getElementById('toggleForm').addEventListener('click',()=>{
+    const f=document.getElementById('jobForm'); f.style.display=f.style.display==='block'?'none':'block';
+  });
+  function toggleSection(id){const sec=document.getElementById(id);sec.style.display=sec.style.display==='none'?'block':'none';}
+
+  // Expand/Collapse All
+  document.getElementById('expandAll').addEventListener('click', () => {
+    ['posiciones-abiertas','posiciones-onhold','posiciones-cerradas'].forEach(id => {
+      document.getElementById(id).style.display = 'block';
+    });
+  });
+  document.getElementById('collapseAll').addEventListener('click', () => {
+    ['posiciones-abiertas','posiciones-onhold','posiciones-cerradas'].forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+  });
 </script>
 </body>
 </html>
