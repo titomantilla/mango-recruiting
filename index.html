@@ -13,6 +13,8 @@
     .status-open { background: #e6ffe6; }
     .status-hold { background: #fff9cc; }
     .status-closed { background: #ffe6e6; }
+    .comentario { margin-bottom: 5px; }
+    .comentario button { margin-left: 10px; }
   </style>
 </head>
 <body>
@@ -57,9 +59,9 @@
 
 <script>
   const firebaseConfig = {
-    apiKey: "AIzaSyBGDdiBrP6JZGuCy4Uma6Aw7o7KqYy4dKk",
-    authDomain: "mango-recruiting.firebaseapp.com",
-    projectId: "mango-recruiting"
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_AUTH_DOMAIN",
+    projectId: "TU_PROJECT_ID"
   };
 
   firebase.initializeApp(firebaseConfig);
@@ -131,7 +133,15 @@
       card.innerHTML = `<b>${d.puesto}</b> - ${d.empresa}<br>Estado: ${d.estado}<br>
         <button onclick="marcarTrabajo('${doc.id}')">Estoy trabajando en esto</button>
         <p><b>Comentarios:</b></p>
-        <ul>${(d.comentarios||[]).map(c => `<li>${c.email}: ${c.texto}</li>`).join('')}</ul>
+        <ul id="comentarios-${doc.id}">
+          ${(d.comentarios||[]).map((c, index) => {
+            const puedeBorrar = c.email === user.email;
+            return `<li class="comentario">
+              ${c.email}: ${c.texto}
+              ${puedeBorrar ? `<button onclick=\"borrarComentario('${doc.id}', ${index})\">❌</button>` : ''}
+            </li>`;
+          }).join('')}
+        </ul>
         <input placeholder="Nuevo comentario" id="comentario-${doc.id}">
         <button onclick="comentar('${doc.id}')">Agregar comentario</button>`;
       contenedor.appendChild(card);
@@ -155,10 +165,23 @@
     const texto = input.value;
     if (texto.trim() === '') return;
     const ref = db.collection('posiciones').doc(id);
-    await ref.update({
-      comentarios: firebase.firestore.FieldValue.arrayUnion({ email: user.email, texto })
-    });
+    const doc = await ref.get();
+    const d = doc.data();
+    const nuevosComentarios = [...(d.comentarios || []), { email: user.email, texto }];
+    await ref.update({ comentarios: nuevosComentarios });
     input.value = '';
+    cargarPosiciones();
+  }
+
+  async function borrarComentario(id, index) {
+    const ref = db.collection('posiciones').doc(id);
+    const doc = await ref.get();
+    const d = doc.data();
+    const user = auth.currentUser;
+    const comentarios = d.comentarios || [];
+    if (comentarios[index].email !== user.email) return;
+    comentarios.splice(index, 1);
+    await ref.update({ comentarios });
     cargarPosiciones();
   }
 </script>
