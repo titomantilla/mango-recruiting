@@ -1,9 +1,37 @@
-.comentario-item {
-  @apply flex justify-between items-center text-sm;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.app-body {
+  @apply bg-gray-100 text-gray-800 font-sans;
 }
 
-.btn-icon {
-  @apply text-red-500 text-sm ml-2;
+.app-container {
+  @apply max-w-4xl mx-auto p-4;
+}
+
+.app-title {
+  @apply text-3xl font-bold mb-4 text-center;
+}
+
+.card {
+  @apply bg-white p-4 rounded shadow mb-4;
+}
+
+.input {
+  @apply w-full p-2 border rounded mb-2;
+}
+
+.btn {
+  @apply bg-blue-600 text-white p-2 rounded;
+}
+
+.btn-danger {
+  @apply bg-red-500 text-white p-2 rounded;
+}
+
+.btn-success {
+  @apply bg-green-600 text-white p-2 rounded;
 }
 
 .btn-secondary {
@@ -16,6 +44,22 @@
 
 .card-subtitle {
   @apply text-sm text-gray-600 mb-2;
+}
+
+.section-title {
+  @apply text-xl font-semibold mb-2;
+}
+
+.form-grid {
+  @apply grid grid-cols-1 gap-2;
+}
+
+.comentario-item {
+  @apply flex justify-between items-center text-sm;
+}
+
+.btn-icon {
+  @apply text-red-500 text-sm ml-2;
 }
 
 .comentarios {
