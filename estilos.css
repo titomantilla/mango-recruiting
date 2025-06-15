@@ -179,3 +179,123 @@ body.app-body {
 .positions-header .section-title {
   margin: 0;   /* eliminamos márgenes extra */
 }
+
+.quill-editor {
+  background-color: var(--card-bg);
+  border-radius: 1rem;
+  min-height: 120px;
+  margin-bottom: 0.5rem;
+}
+.ql-toolbar {
+  border-radius: 1rem 1rem 0 0;
+}
+.ql-container {
+  border-radius: 0 0 1rem 1rem;
+  background-color: var(--card-bg);
+}
+.ql-editor {
+  color: var(--text-color);
+}
+
+/* Estilos “bonitos” para los botones */
+.btn,
+.btn-secondary,
+.btn-danger {
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  min-width: 120px;
+  font-weight: 600;
+  text-align: center;
+  transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Color de fondo */
+.btn {
+  background-color: var(--accent);
+  color: var(--bg-main-top);
+}
+.btn-secondary {
+  background-color: var(--secondary);
+  color: var(--text-color);
+}
+.btn-danger {
+  background-color: var(--danger);
+  color: var(--text-color);
+}
+
+/* Hover y active */
+.btn:hover,
+.btn-secondary:hover,
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  filter: brightness(1.1);
+}
+.btn:active,
+.btn-secondary:active,
+.btn-danger:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Extiende estilos “bonitos” también al botón Enviar */
+.btn-success {
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  min-width: 120px;
+  font-weight: 600;
+  text-align: center;
+  transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background-color: var(--success);
+  color: var(--text-color);
+}
+
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  filter: brightness(1.1);
+}
+
+.btn-success:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Hipervínculos con tonos mango */
+a,
+a:visited {
+  color: var(--accent);            /* naranja quemado */
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--accent-dark);       /* naranja más intenso al hover */
+  text-decoration: underline;
+}
+
+/* Formulario de “Agregar posición”: editor Quill con fondo claro */
+.form-section .quill-editor {
+  background-color: #a5a0a0;       /* un gris más claro que el resto */
+  border: 1px solid #444;       /* borde sutil para delimitar */
+  border-radius: 0.5rem;        /* esquinas redondeadas */
+  padding: 0.5rem;              /* espacio interior */
+  min-height: 8rem;             /* altura por defecto */
+}
+
+/* Asegurar que la toolbar de Quill tenga contraste */
+.ql-toolbar.ql-snow {
+  background-color: #dad8d8;    /* toolbar ligeramente más claro */
+  border-radius: 0.5rem 0.5rem 0 0;
+  border: 1px solid #444;
+  border-bottom: none;
+}
+
+/* Ajuste de la zona editable para que contraste */
+.ql-container.ql-snow {
+  border-top: none;
+  border: 1px solid #d6d4d4;
+  border-radius: 0 0 0.5rem 0.5rem;
+}
