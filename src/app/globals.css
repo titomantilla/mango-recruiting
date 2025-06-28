@@ -2,13 +2,16 @@
 
 /* globals.css (arriba del todo) */
 :root {
-  --bg-primary: #1f3a93;
+  --bg-primary: #0a1c55; /*Color fondo*/
+  --background: var(--bg-primary);
+  --foreground: #ededed;
 }
 
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 @theme inline {
@@ -31,11 +34,9 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* globals.css */
-
 /* Contenedor del editor enriquecido */
 .rich-editor-content {
-  background-color: #ffffff;
+  background-color: #bbacac;
   color: #000000;
   padding: 1rem;
   border-radius: 0.5rem;
@@ -99,9 +100,6 @@ body {
   padding: 0;
 }
 
-/* globals.css (al final) */
-
-/* Aplícalo a todas las clases que uses para fondos */
 .bg-gray-800,
 .bg-gray-900,
 .bg-mango-accent,
@@ -109,4 +107,17 @@ body {
   background-color: var(--bg-primary) !important;
 }
 
-/* Si usas bg-yellow-500, bg-red-500, etc., agrégalas aquí también */
+/* Estilo detalles de candidatos y posiciones*/
+.max-w-3xl .bg-gray-800 {
+  background-color: #918f8c !important;    
+  transition: background-color .2s ease;
+}
+
+/* Estilo compartido para todas las “cards” */
+.card {
+  background-color: #c26b00d3 !important;               /* Color Estatico */
+  transition: background-color 0.2s ease;
+}
+.card:hover {
+  background-color: #258b05c8 !important;               /* Color En Hover */
+}

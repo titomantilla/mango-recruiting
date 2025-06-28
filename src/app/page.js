@@ -113,7 +113,7 @@ export default function DashboardPage() {
       <h1 className="text-3xl font-bold text-mango-accent">Dashboard</h1>
 
       {/* Métricas Generales */}
-      <div className="bg-gray-800 p-6 rounded-lg">
+      <div className="bg-gray-500 p-6 rounded-lg">
         <h2 className="text-xl font-semibold mb-2 text-orange-400">
           Métricas Generales
         </h2>
@@ -124,7 +124,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Candidatos por Posición */}
-      <div className="bg-gray-800 p-6 rounded-lg">
+      <div className="bg-gray-500 p-6 rounded-lg">
         <h2 className="text-xl font-semibold mb-4 text-orange-400">
           Candidatos por Posición
         </h2>
@@ -147,7 +147,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Candidatos por Usuario */}
-      <div className="bg-gray-800 p-6 rounded-lg">
+      <div className="bg-gray-500 p-6 rounded-lg">
         <h2 className="text-xl font-semibold mb-4 text-orange-400">
           Candidatos por Usuario
         </h2>
@@ -161,7 +161,7 @@ export default function DashboardPage() {
       </div>
 
       {/* NUEVA: Candidatos por Estado */}
-      <div className="bg-gray-800 p-6 rounded-lg">
+      <div className="bg-gray-500 p-6 rounded-lg">
         <h2 className="text-xl font-semibold mb-4 text-orange-400">
           Candidatos por Estado
         </h2>

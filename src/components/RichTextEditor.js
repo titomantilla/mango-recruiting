@@ -79,7 +79,7 @@ export default function RichTextEditor({ value, onChange }) {
       </div>
 
       {/* Editor */}
-      <div className="bg-white text-black rounded p-2 min-h-[150px]">
+      <div className="bg-white text-black rounded p-2 max-h-[1000px]">
         <EditorContent
   editor={editor}
   className="rich-editor-content"

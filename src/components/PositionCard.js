@@ -19,7 +19,7 @@ export default function PositionCard({ id, title, company,status, inWorkBy = [] 
   return (
     <div
       onClick={goToDetail}
-      className="relative cursor-pointer border border-gray-700 p-4 rounded-lg mb-4 hover:bg-gray-700 transition"
+      className="card relative cursor-pointer border border-gray-700 p-4 rounded-lg mb-4"
     >
       {/* Badge de status en esquina inferior derecha */}
       {status && (

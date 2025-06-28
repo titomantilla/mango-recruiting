@@ -14,7 +14,7 @@ export default function Navbar() {
   const isLoginPage = path === '/login';
 
   return (
-    <nav className="bg-mango-accent-dark text-white p-4 flex items-center justify-between">
+    <nav className="bg-gray-800 text-white p-4 flex items-center justify-between">
       {/* Menú izquierdo: oculto en /login */}
       {!isLoginPage && (
         <ul className="flex space-x-4">
