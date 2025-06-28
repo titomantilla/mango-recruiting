@@ -5,6 +5,14 @@ import { AuthProvider } from '../lib/auth';
 
 export default function RootLayout({ children }) {
   return (
+    <html lang="es" className="dark">
+      <body>{children}</body>
+    </html>
+  );
+}
+
+export default function RootLayout({ children }) {
+  return (
     <html lang="es">
       <body>
         <AuthProvider>
