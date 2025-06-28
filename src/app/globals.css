@@ -24,3 +24,71 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* globals.css */
+
+/* Contenedor del editor enriquecido */
+.rich-editor-content {
+  background-color: #ffffff;
+  color: #000000;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  min-height: 10rem;
+  overflow: auto;
+}
+
+/* Listas con viñetas y numeradas */
+.rich-editor-content ul {
+  list-style-type: disc;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+.rich-editor-content ol {
+  list-style-type: decimal;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Negrita, cursiva, subrayado ya heredan estilos del navegador */
+.rich-editor-content strong { font-weight: bold; }
+.rich-editor-content em     { font-style: italic; }
+.rich-editor-content u      { text-decoration: underline; }
+
+/* Contenedor para mostrar HTML enriquecido en detalle */
+.rich-text-content {
+  background-color: #1f2937; /* gris oscuro */
+  color: #f9fafb;            /* casi blanco */
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+.rich-text-content ul,
+.rich-text-content ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Estilos para listas dentro del contenido enriquecido */
+.rich-text-content ul {
+  list-style-type: disc;       /* viñetas normales */
+  list-style-position: inside; /* dentro del contenedor */
+  margin-left: 1.5rem;         /* sangría */
+  margin-bottom: 1rem;
+}
+
+.rich-text-content ol {
+  list-style-type: decimal;    
+  list-style-position: inside; 
+  margin-left: 1.5rem;         
+  margin-bottom: 1rem;
+}
+
+.rich-text-content li {
+  margin-bottom: 0.5rem;       /* separación entre ítems */
+}
+
+/* Quitar salto dentro de <li><p>…</p></li> */
+.rich-text-content li > p {
+  display: inline;  /* lo hacemos inline para no romper la línea */
+  margin: 0;        /* eliminamos márgenes */
+  padding: 0;
+}

@@ -1,103 +1,183 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { useAuth } from '../lib/auth';
+
+export default function DashboardPage() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Estados
+  const [totalPositions, setTotalPositions] = useState(0);
+  const [candidatesByPosition, setCandidatesByPosition] = useState([]);
+  const [candidatesByUser, setCandidatesByUser] = useState([]);
+  const [candidatesByStatus, setCandidatesByStatus] = useState([]); // **nuevo**
+  const [loading, setLoading] = useState(true);
+
+  // Protege ruta
+  useEffect(() => {
+    if (!authLoading && user === null) router.push('/login');
+  }, [authLoading, user, router]);
+
+  // Carga métricas
+  useEffect(() => {
+    if (authLoading || user === null) return;
+
+    async function fetchMetrics() {
+      setLoading(true);
+
+      // posiciones
+      const posSnap = await getDocs(collection(db, 'positions'));
+      const positions = posSnap.docs.map(d => ({
+        id: d.id,
+        title: d.data().title
+      }));
+      setTotalPositions(positions.length);
+
+      // candidatos
+      const candSnap = await getDocs(collection(db, 'candidates'));
+      const candidates = candSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // por posición
+      const byPos = positions.map(pos => {
+        const matched = candidates.filter(c =>
+          Array.isArray(c.positionStatuses) &&
+          c.positionStatuses.some(ps => ps.positionId === pos.id)
+        );
+        return {
+          positionId: pos.id,
+          title: pos.title,
+          count: matched.length,
+          names: matched.map(c => c.fullName)
+        };
+      });
+      setCandidatesByPosition(byPos);
+
+      // por usuario
+      const counts = {};
+      candidates.forEach(c => {
+        const uid = c.createdBy || 'unknown';
+        counts[uid] = (counts[uid] || 0) + 1;
+      });
+      const userSnap = await getDocs(collection(db, 'users'));
+      const userMap = {};
+      userSnap.docs.forEach(d => {
+        const data = d.data();
+        userMap[d.id] = data.displayName || data.email || d.id;
+      });
+      const byUser = Object.entries(counts).map(([uid, cnt]) => ({
+        userName: userMap[uid] || uid,
+        count: cnt
+      }));
+      setCandidatesByUser(byUser);
+
+      // **por estado**  
+      const statusMap = {};
+      candidates.forEach(c => {
+        const fullName = c.fullName;
+        (c.positionStatuses || []).forEach(ps => {
+          // buscar título de posición
+          const pos = positions.find(p => p.id === ps.positionId);
+          const title = pos ? pos.title : ps.positionId;
+          if (!statusMap[ps.status]) statusMap[ps.status] = [];
+          statusMap[ps.status].push({ fullName, positionTitle: title });
+        });
+      });
+      // transformar a array [{ status, entries: [...] }, ...]
+      const byStatus = Object.entries(statusMap).map(([status, entries]) => ({
+        status,
+        entries
+      }));
+      setCandidatesByStatus(byStatus);
+
+      setLoading(false);
+    }
+
+    fetchMetrics();
+  }, [authLoading, user]);
+
+  // retornos condicionales
+  if (authLoading || user === null) {
+    return <p className="p-4 text-gray-300">Verificando usuario…</p>;
+  }
+  if (loading) {
+    return <p className="p-4 text-gray-300">Cargando métricas…</p>;
+  }
+
+  // render final
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="max-w-4xl mx-auto mt-10 p-4 space-y-8">
+      <h1 className="text-3xl font-bold text-mango-accent">Dashboard</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      {/* Métricas Generales */}
+      <div className="bg-gray-800 p-6 rounded-lg">
+        <h2 className="text-xl font-semibold mb-2 text-orange-400">
+          Métricas Generales
+        </h2>
+        <p>
+          Total de posiciones:{' '}
+          <span className="font-bold">{totalPositions}</span>
+        </p>
+      </div>
+
+      {/* Candidatos por Posición */}
+      <div className="bg-gray-800 p-6 rounded-lg">
+        <h2 className="text-xl font-semibold mb-4 text-orange-400">
+          Candidatos por Posición
+        </h2>
+        {candidatesByPosition.map(pos => (
+          <div
+            key={pos.positionId}
+            className="border-b border-gray-700 pb-2 mb-2"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            <p className="font-medium">
+              {pos.title}:{' '}
+              <span className="font-bold">{pos.count}</span>
+            </p>
+            {pos.names.length > 0 && (
+              <p className="text-gray-400 text-sm">
+                {pos.names.join(', ')}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Candidatos por Usuario */}
+      <div className="bg-gray-800 p-6 rounded-lg">
+        <h2 className="text-xl font-semibold mb-4 text-orange-400">
+          Candidatos por Usuario
+        </h2>
+        <ul className="list-disc list-inside space-y-1">
+          {candidatesByUser.map(({ userName, count }) => (
+            <li key={userName}>
+              <span className="font-medium">{userName}</span>: {count}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* NUEVA: Candidatos por Estado */}
+      <div className="bg-gray-800 p-6 rounded-lg">
+        <h2 className="text-xl font-semibold mb-4 text-orange-400">
+          Candidatos por Estado
+        </h2>
+        {candidatesByStatus.map(group => (
+          <div key={group.status} className="mb-4">
+            <p className="font-medium underline">{group.status}</p>
+            <ul className="list-disc list-inside ml-4 mt-1">
+              {group.entries.map(({ fullName, positionTitle }, i) => (
+                <li key={i}>
+                  {fullName} — <span className="italic">{positionTitle}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
