@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* globals.css (arriba del todo) */
+:root {
+  --bg-primary: #1f3a93;
+}
+
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -92,3 +98,15 @@ body {
   margin: 0;        /* eliminamos márgenes */
   padding: 0;
 }
+
+/* globals.css (al final) */
+
+/* Aplícalo a todas las clases que uses para fondos */
+.bg-gray-800,
+.bg-gray-900,
+.bg-mango-accent,
+.bg-mango-accent-dark {
+  background-color: var(--bg-primary) !important;
+}
+
+/* Si usas bg-yellow-500, bg-red-500, etc., agrégalas aquí también */
