@@ -180,8 +180,7 @@ export default function CommentsSection({ positionId }) {
         <button
           onClick={handleAddComment}
           className="mt-2 bg-mango-accent hover:bg-mango-accent-dark text-gray-900 font-bold py-2 px-4 rounded disabled:opacity-50"
-          disabled={!newComment.trim() || !user}
-        >
+          disabled={!newComment.trim() || !user}>
           Publicar comentario
         </button>
       </div>
